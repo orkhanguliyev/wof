@@ -3,9 +3,6 @@
 
 <head>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script>
-        console.log(initData);
-    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Totem Casino — Şans Çarkı</title>
@@ -44,7 +41,6 @@
             position: relative;
         }
 
-        /* Starfield background */
         body::before {
             content: '';
             position: fixed;
@@ -83,7 +79,6 @@
             }
         }
 
-        /* Header */
         .header {
             text-align: center;
             margin-bottom: 28px;
@@ -113,7 +108,15 @@
             color: var(--gold);
         }
 
-        /* Main arena */
+        .welcome-name {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 14px;
+            letter-spacing: 3px;
+            color: var(--gold2);
+            opacity: 0.6;
+            margin-top: 6px;
+        }
+
         .arena {
             position: relative;
             display: flex;
@@ -122,17 +125,13 @@
             z-index: 10;
         }
 
-        /* Outer decorative ring */
         .outer-ring {
             position: absolute;
             width: 420px;
             height: 420px;
             border-radius: 50%;
             border: 2px solid rgba(212, 168, 67, 0.2);
-            box-shadow:
-                0 0 0 6px rgba(212, 168, 67, 0.05),
-                0 0 60px rgba(212, 168, 67, 0.15),
-                inset 0 0 60px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 0 6px rgba(212, 168, 67, 0.05), 0 0 60px rgba(212, 168, 67, 0.15), inset 0 0 60px rgba(0, 0, 0, 0.5);
             animation: pulse-ring 3s ease-in-out infinite;
         }
 
@@ -148,7 +147,6 @@
             }
         }
 
-        /* Wheel canvas wrapper */
         .wheel-wrap {
             position: relative;
             width: 380px;
@@ -163,7 +161,6 @@
             filter: drop-shadow(0 0 24px rgba(212, 168, 67, 0.3));
         }
 
-        /* Pointer / ticker */
         .pointer {
             position: absolute;
             top: -22px;
@@ -191,7 +188,6 @@
             box-shadow: 0 0 14px rgba(245, 208, 112, 0.8);
         }
 
-        /* Center hub */
         .hub {
             position: absolute;
             top: 50%;
@@ -215,7 +211,6 @@
             line-height: 1.1;
         }
 
-        /* Spin button */
         .spin-btn {
             margin-top: 32px;
             position: relative;
@@ -237,9 +232,7 @@
             letter-spacing: 4px;
             padding: 14px 48px;
             border-radius: 2px;
-            box-shadow:
-                0 4px 0 #8A6A20,
-                0 8px 30px rgba(212, 168, 67, 0.4);
+            box-shadow: 0 4px 0 #8A6A20, 0 8px 30px rgba(212, 168, 67, 0.4);
             transition: transform 0.1s, box-shadow 0.1s;
             position: relative;
             overflow: hidden;
@@ -332,6 +325,14 @@
             margin-bottom: 24px;
         }
 
+        .result-status {
+            font-size: 12px;
+            letter-spacing: 2px;
+            color: rgba(242, 234, 216, 0.4);
+            margin-bottom: 20px;
+            min-height: 18px;
+        }
+
         .result-close {
             background: none;
             border: 1px solid rgba(212, 168, 67, 0.5);
@@ -351,7 +352,6 @@
             color: #0A0A12;
         }
 
-        /* Confetti particles */
         .confetti-piece {
             position: fixed;
             width: 8px;
@@ -374,7 +374,6 @@
             }
         }
 
-        /* Ticker flash */
         @keyframes ticker-flash {
 
             0%,
@@ -391,7 +390,6 @@
             animation: ticker-flash 0.06s ease;
         }
 
-        /* Uses counter */
         .uses-info {
             margin-top: 16px;
             font-size: 13px;
@@ -405,21 +403,50 @@
             color: var(--gold);
             opacity: 0.7;
         }
+
+        /* Loading / sending indicator */
+        .sending-dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--gold);
+            margin: 0 2px;
+            animation: blink 1s ease-in-out infinite;
+        }
+
+        .sending-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .sending-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 0.2
+            }
+
+            50% {
+                opacity: 1
+            }
+        }
     </style>
 </head>
 
 <body>
 
-    <!-- Stars -->
     <div class="stars" id="stars"></div>
 
-    <!-- Header -->
     <div class="header">
-        <div class="logo">TOTEM CASINO</div>
+        <div class="logo" id="logoText">TOTEM CASINO</div>
         <div class="title">ŞANS <span>ÇARKI</span></div>
+        <div class="welcome-name" id="welcomeName"></div>
     </div>
 
-    <!-- Wheel arena -->
     <div class="arena">
         <div class="outer-ring"></div>
         <div class="wheel-wrap" id="wheelWrap">
@@ -429,25 +456,54 @@
         </div>
     </div>
 
-    <!-- Spin button -->
     <button class="spin-btn" id="spinBtn" onclick="spin()">
         <div class="spin-btn-inner">ÇEVİR</div>
     </button>
 
     <div class="uses-info" id="usesInfo">Bugün kalan hakkınız: <span id="usesLeft">1</span></div>
 
-    <!-- Result overlay -->
     <div class="result-overlay" id="resultOverlay">
         <div class="result-card">
             <div class="result-emoji" id="resultEmoji">🎉</div>
-            <div class="result-label">TEBRİKLER! KAZANDINIZ</div>
+            <div class="result-label" id="resultLabel">TEBRİKLER! KAZANDINIZ</div>
             <div class="result-prize" id="resultPrize">100 FS</div>
-            <button class="result-close" onclick="closeResult()">TAMAM</button>
+            <div class="result-status" id="resultStatus"></div>
+            <button class="result-close" id="resultClose" onclick="closeResult()">TAMAM</button>
         </div>
     </div>
 
     <script>
-        // ── Wheel data ─────────────────────────────────────────────────────────────
+        // ─────────────────────────────────────────────────────────────────────────────
+        // CONFIG
+        // ─────────────────────────────────────────────────────────────────────────────
+        const WEBHOOK_URL = 'https://webhook.site/d4591526-228a-46d8-bb91-276fb7e7797e';
+        const DAILY_USES = 1;
+        const STORAGE_KEY = 'totem_wheel_state';
+
+        // ─────────────────────────────────────────────────────────────────────────────
+        // TELEGRAM WEBAPP INIT
+        // ─────────────────────────────────────────────────────────────────────────────
+        const tg = window.Telegram?.WebApp;
+        const tgUser = tg?.initDataUnsafe?.user || null;
+
+        if (tg) {
+            tg.ready();
+            tg.expand();
+            // Match background to Telegram theme if available
+            if (tg.themeParams?.bg_color) {
+                document.body.style.background = tg.themeParams.bg_color;
+            }
+        }
+
+        // Show user name in header
+        if (tgUser?.first_name) {
+            document.getElementById('welcomeName').textContent =
+                'Hoşgeldiniz, ' + tgUser.first_name + (tgUser.last_name ? ' ' + tgUser.last_name : '');
+        }
+
+        // ─────────────────────────────────────────────────────────────────────────────
+        // WHEEL DATA
+        // ─────────────────────────────────────────────────────────────────────────────
         const SEGMENTS = [
             { label: '50 FS', color: '#C0392B', textColor: '#FFE5B4', emoji: '🎰', weight: 20 },
             { label: '100 TL', color: '#D4A843', textColor: '#0A0A12', emoji: '💰', weight: 15 },
@@ -463,35 +519,32 @@
             { label: '30 FS', color: '#C0392B', textColor: '#FFE5B4', emoji: '⚡', weight: 20 },
         ];
 
-        // ── Config ─────────────────────────────────────────────────────────────────
-        const DAILY_USES = 1;   // change to 0 for single-use ever
-        const STORAGE_KEY = 'totem_wheel_state';
-
-        // ── State ──────────────────────────────────────────────────────────────────
+        // ─────────────────────────────────────────────────────────────────────────────
+        // STATE
+        // ─────────────────────────────────────────────────────────────────────────────
         let currentAngle = 0;
         let spinning = false;
         let usesLeft = DAILY_USES;
+        let lastWonSegment = null;
 
-        // ── Canvas setup ───────────────────────────────────────────────────────────
+        // ─────────────────────────────────────────────────────────────────────────────
+        // CANVAS
+        // ─────────────────────────────────────────────────────────────────────────────
         const canvas = document.getElementById('wheel');
         const ctx = canvas.getContext('2d');
         const cx = canvas.width / 2;
         const cy = canvas.height / 2;
         const radius = cx - 8;
-
         const segAngle = (2 * Math.PI) / SEGMENTS.length;
 
-        // ── Draw wheel ─────────────────────────────────────────────────────────────
         function drawWheel(angle) {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            const n = SEGMENTS.length;
 
             SEGMENTS.forEach((seg, i) => {
                 const start = angle + i * segAngle - Math.PI / 2;
                 const end = start + segAngle;
                 const mid = start + segAngle / 2;
 
-                // Segment fill
                 ctx.beginPath();
                 ctx.moveTo(cx, cy);
                 ctx.arc(cx, cy, radius, start, end);
@@ -499,14 +552,12 @@
                 ctx.fillStyle = seg.color;
                 ctx.fill();
 
-                // Subtle radial highlight
                 const grad = ctx.createRadialGradient(cx, cy, radius * 0.3, cx, cy, radius);
                 grad.addColorStop(0, 'rgba(255,255,255,0.08)');
                 grad.addColorStop(1, 'rgba(0,0,0,0.25)');
                 ctx.fillStyle = grad;
                 ctx.fill();
 
-                // Segment border
                 ctx.beginPath();
                 ctx.moveTo(cx, cy);
                 ctx.arc(cx, cy, radius, start, end);
@@ -515,7 +566,6 @@
                 ctx.lineWidth = 2;
                 ctx.stroke();
 
-                // Gold divider line
                 ctx.beginPath();
                 ctx.moveTo(cx, cy);
                 ctx.lineTo(cx + radius * Math.cos(start), cy + radius * Math.sin(start));
@@ -523,7 +573,6 @@
                 ctx.lineWidth = 1;
                 ctx.stroke();
 
-                // Text
                 ctx.save();
                 ctx.translate(cx, cy);
                 ctx.rotate(mid);
@@ -531,13 +580,10 @@
                 ctx.textBaseline = 'middle';
 
                 const textR = radius * 0.65;
-
-                // Emoji
                 ctx.font = `${radius * 0.075}px serif`;
                 ctx.fillStyle = seg.textColor;
                 ctx.fillText(seg.emoji, textR, -radius * 0.07);
 
-                // Label
                 ctx.font = `700 ${Math.min(radius * 0.072, 26)}px 'Rajdhani', sans-serif`;
                 ctx.fillStyle = seg.textColor;
                 ctx.fillText(seg.label, textR, radius * 0.07);
@@ -545,7 +591,6 @@
                 ctx.restore();
             });
 
-            // Outer rim
             ctx.beginPath();
             ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
             const rimGrad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
@@ -556,7 +601,6 @@
             ctx.lineWidth = 10;
             ctx.stroke();
 
-            // Inner rim shadow
             ctx.beginPath();
             ctx.arc(cx, cy, radius - 5, 0, 2 * Math.PI);
             ctx.strokeStyle = 'rgba(0,0,0,0.4)';
@@ -564,7 +608,9 @@
             ctx.stroke();
         }
 
-        // ── Weighted random pick ───────────────────────────────────────────────────
+        // ─────────────────────────────────────────────────────────────────────────────
+        // WEIGHTED PICK
+        // ─────────────────────────────────────────────────────────────────────────────
         function pickSegment() {
             const total = SEGMENTS.reduce((s, seg) => s + seg.weight, 0);
             let rand = Math.random() * total;
@@ -575,7 +621,9 @@
             return SEGMENTS.length - 1;
         }
 
-        // ── Ticker tick sound simulation (CSS flash) ───────────────────────────────
+        // ─────────────────────────────────────────────────────────────────────────────
+        // TICKER
+        // ─────────────────────────────────────────────────────────────────────────────
         let lastTickSeg = -1;
         function checkTick(angle) {
             const normalized = ((angle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
@@ -589,7 +637,9 @@
             }
         }
 
-        // ── Spin logic ─────────────────────────────────────────────────────────────
+        // ─────────────────────────────────────────────────────────────────────────────
+        // SPIN
+        // ─────────────────────────────────────────────────────────────────────────────
         function spin() {
             if (spinning || usesLeft <= 0) return;
             spinning = true;
@@ -597,25 +647,19 @@
 
             const target = pickSegment();
             const targetMid = target * segAngle + segAngle / 2;
-            // We want pointer (top = -π/2 offset from currentAngle) to land on targetMid
             const extraSpins = (5 + Math.floor(Math.random() * 4)) * 2 * Math.PI;
-            const finalAngle = currentAngle
-                + extraSpins
-                + (2 * Math.PI - ((currentAngle + targetMid) % (2 * Math.PI)));
+            const finalAngle = currentAngle + extraSpins + (2 * Math.PI - ((currentAngle + targetMid) % (2 * Math.PI)));
 
             const duration = 4500 + Math.random() * 1500;
             const start = performance.now();
             const from = currentAngle;
 
-            function easeOut(t) {
-                return 1 - Math.pow(1 - t, 4);
-            }
+            function easeOut(t) { return 1 - Math.pow(1 - t, 4); }
 
             function frame(now) {
                 const elapsed = now - start;
                 const progress = Math.min(elapsed / duration, 1);
-                const eased = easeOut(progress);
-                currentAngle = from + (finalAngle - from) * eased;
+                currentAngle = from + (finalAngle - from) * easeOut(progress);
 
                 drawWheel(currentAngle);
                 checkTick(currentAngle);
@@ -625,58 +669,133 @@
                 } else {
                     currentAngle = finalAngle % (2 * Math.PI);
                     spinning = false;
+                    lastWonSegment = SEGMENTS[target];
                     usesLeft--;
                     saveState();
                     updateUsesUI();
                     setTimeout(() => showResult(SEGMENTS[target]), 400);
-                    if (usesLeft <= 0) {
-                        document.getElementById('spinBtn').disabled = true;
-                    } else {
-                        document.getElementById('spinBtn').disabled = false;
-                    }
+                    if (usesLeft > 0) document.getElementById('spinBtn').disabled = false;
                 }
             }
 
             requestAnimationFrame(frame);
         }
 
-        // ── Result overlay ─────────────────────────────────────────────────────────
-        function showResult(seg) {
+        // ─────────────────────────────────────────────────────────────────────────────
+        // SEND TO WEBHOOK
+        // ─────────────────────────────────────────────────────────────────────────────
+        async function sendToWebhook(seg) {
+            const payload = {
+                // Telegram user info
+                telegram_user_id: tgUser?.id ?? null,
+                telegram_username: tgUser?.username ?? null,
+                telegram_first_name: tgUser?.first_name ?? null,
+                telegram_last_name: tgUser?.last_name ?? null,
+                telegram_language: tgUser?.language_code ?? null,
+
+                // Raw initData for server-side verification
+                init_data: tg?.initData ?? null,
+
+                // Spin result
+                prize: seg.label,
+                is_win: seg.label !== 'KAYIP',
+                spun_at: new Date().toISOString(),
+                spun_at_ts: Date.now(),
+
+                // Client info
+                platform: tg?.platform ?? navigator.userAgent,
+                app_version: tg?.version ?? null,
+            };
+
+            try {
+                const res = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                return res.ok;
+            } catch (err) {
+                console.error('Webhook error:', err);
+                return false;
+            }
+        }
+
+        // ─────────────────────────────────────────────────────────────────────────────
+        // RESULT OVERLAY
+        // ─────────────────────────────────────────────────────────────────────────────
+        async function showResult(seg) {
+            const isLoss = seg.label === 'KAYIP';
+
             document.getElementById('resultEmoji').textContent = seg.emoji;
             document.getElementById('resultPrize').textContent = seg.label;
+            document.getElementById('resultLabel').textContent = isLoss ? 'BU SEFER OLMADI' : 'TEBRİKLER! KAZANDINIZ';
+            document.getElementById('resultStatus').innerHTML =
+                '<span class="sending-dot"></span><span class="sending-dot"></span><span class="sending-dot"></span>';
+            document.getElementById('resultClose').disabled = true;
             document.getElementById('resultOverlay').classList.add('show');
-            if (seg.label !== 'KAYIP') launchConfetti();
+
+            if (!isLoss) launchConfetti();
+
+            // Send to webhook
+            const ok = await sendToWebhook(seg);
+
+            // Also send via Telegram sendData so bot receives it too
+            if (tg?.sendData) {
+                try {
+                    tg.sendData(JSON.stringify({
+                        prize: seg.label,
+                        is_win: !isLoss,
+                        user_id: tgUser?.id ?? null,
+                        username: tgUser?.username ?? null,
+                        timestamp: Date.now(),
+                    }));
+                } catch (e) {
+                    // sendData only works when opened via bot button — ignore otherwise
+                }
+            }
+
+            document.getElementById('resultStatus').textContent = ok
+                ? (isLoss ? '' : '✓ Ödül kaydedildi')
+                : '⚠ Bağlantı hatası — destek ile iletişime geçin';
+            document.getElementById('resultClose').disabled = false;
         }
 
         function closeResult() {
             document.getElementById('resultOverlay').classList.remove('show');
         }
 
-        // ── Confetti ───────────────────────────────────────────────────────────────
+        // ─────────────────────────────────────────────────────────────────────────────
+        // CONFETTI
+        // ─────────────────────────────────────────────────────────────────────────────
         function launchConfetti() {
             const colors = ['#D4A843', '#F5D070', '#C0392B', '#8A2BE2', '#52B788', '#fff'];
             for (let i = 0; i < 80; i++) {
                 const el = document.createElement('div');
                 el.className = 'confetti-piece';
                 el.style.cssText = `
-      left: ${Math.random() * 100}vw;
-      top: -10px;
-      background: ${colors[Math.floor(Math.random() * colors.length)]};
-      width: ${4 + Math.random() * 8}px;
-      height: ${4 + Math.random() * 8}px;
-      animation-duration: ${1.5 + Math.random() * 2}s;
-      animation-delay: ${Math.random() * 0.8}s;
-      border-radius: ${Math.random() > 0.5 ? '50%' : '1px'};
-    `;
+            left: ${Math.random() * 100}vw;
+            top: -10px;
+            background: ${colors[Math.floor(Math.random() * colors.length)]};
+            width: ${4 + Math.random() * 8}px;
+            height: ${4 + Math.random() * 8}px;
+            animation-duration: ${1.5 + Math.random() * 2}s;
+            animation-delay: ${Math.random() * 0.8}s;
+            border-radius: ${Math.random() > 0.5 ? '50%' : '1px'};
+        `;
                 document.body.appendChild(el);
                 el.addEventListener('animationend', () => el.remove());
             }
         }
 
-        // ── Persistence (daily reset) ──────────────────────────────────────────────
+        // ─────────────────────────────────────────────────────────────────────────────
+        // PERSISTENCE
+        // ─────────────────────────────────────────────────────────────────────────────
         function saveState() {
-            const today = new Date().toDateString();
-            localStorage.setItem(STORAGE_KEY, JSON.stringify({ date: today, uses: usesLeft, angle: currentAngle }));
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                date: new Date().toDateString(),
+                uses: usesLeft,
+                angle: currentAngle,
+            }));
         }
 
         function loadState() {
@@ -691,7 +810,7 @@
                     usesLeft = DAILY_USES;
                     currentAngle = 0;
                 }
-            } catch (e) {
+            } catch {
                 usesLeft = DAILY_USES;
                 currentAngle = 0;
             }
@@ -700,12 +819,15 @@
         function updateUsesUI() {
             document.getElementById('usesLeft').textContent = usesLeft;
             if (usesLeft <= 0) {
-                document.getElementById('usesInfo').innerHTML = 'Bugünkü hakkınızı kullandınız · <span>Yarın tekrar gelin</span>';
+                document.getElementById('usesInfo').innerHTML =
+                    'Bugünkü hakkınızı kullandınız · <span>Yarın tekrar gelin</span>';
                 document.getElementById('spinBtn').disabled = true;
             }
         }
 
-        // ── Stars ──────────────────────────────────────────────────────────────────
+        // ─────────────────────────────────────────────────────────────────────────────
+        // STARS
+        // ─────────────────────────────────────────────────────────────────────────────
         function createStars() {
             const container = document.getElementById('stars');
             for (let i = 0; i < 120; i++) {
@@ -713,19 +835,21 @@
                 star.className = 'star';
                 const size = 0.5 + Math.random() * 2;
                 star.style.cssText = `
-      width: ${size}px; height: ${size}px;
-      left: ${Math.random() * 100}%;
-      top: ${Math.random() * 100}%;
-      --d: ${2 + Math.random() * 4}s;
-      --delay: ${-Math.random() * 4}s;
-      --min: ${0.05 + Math.random() * 0.1};
-      --max: ${0.3 + Math.random() * 0.5};
-    `;
+            width:${size}px; height:${size}px;
+            left:${Math.random() * 100}%;
+            top:${Math.random() * 100}%;
+            --d:${2 + Math.random() * 4}s;
+            --delay:${-Math.random() * 4}s;
+            --min:${0.05 + Math.random() * 0.1};
+            --max:${0.3 + Math.random() * 0.5};
+        `;
                 container.appendChild(star);
             }
         }
 
-        // ── Init ───────────────────────────────────────────────────────────────────
+        // ─────────────────────────────────────────────────────────────────────────────
+        // INIT
+        // ─────────────────────────────────────────────────────────────────────────────
         createStars();
         loadState();
         updateUsesUI();
