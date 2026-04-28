@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        console.log(initData);
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Totem Casino — Şans Çarkı</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --gold: #D4A843;
+            --gold2: #F5D070;
+            --dark: #0A0A12;
+            --dark2: #111120;
+            --dark3: #1A1A2E;
+            --red: #C0392B;
+            --red2: #E74C3C;
+            --cream: #F2EAD8;
+            --glow: rgba(212, 168, 67, 0.35);
+        }
+
+        body {
+            min-height: 100vh;
+            background: var(--dark);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Rajdhani', sans-serif;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Starfield background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 50% 0%, rgba(212, 168, 67, 0.08) 0%, transparent 70%),
+                radial-gradient(ellipse 60% 40% at 50% 100%, rgba(192, 57, 43, 0.07) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .stars {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .star {
+            position: absolute;
+            border-radius: 50%;
+            background: #fff;
+            animation: twinkle var(--d, 3s) ease-in-out infinite var(--delay, 0s);
+        }
+
+        @keyframes twinkle {
+
+            0%,
+            100% {
+                opacity: var(--min, 0.1);
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: var(--max, 0.6);
+                transform: scale(1.3);
+            }
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 28px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .logo {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 13px;
+            letter-spacing: 6px;
+            color: var(--gold);
+            opacity: 0.7;
+            margin-bottom: 4px;
+        }
+
+        .title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(36px, 6vw, 56px);
+            letter-spacing: 4px;
+            color: var(--cream);
+            line-height: 1;
+            text-shadow: 0 0 40px var(--glow), 0 2px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        .title span {
+            color: var(--gold);
+        }
+
+        /* Main arena */
+        .arena {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        /* Outer decorative ring */
+        .outer-ring {
+            position: absolute;
+            width: 420px;
+            height: 420px;
+            border-radius: 50%;
+            border: 2px solid rgba(212, 168, 67, 0.2);
+            box-shadow:
+                0 0 0 6px rgba(212, 168, 67, 0.05),
+                0 0 60px rgba(212, 168, 67, 0.15),
+                inset 0 0 60px rgba(0, 0, 0, 0.5);
+            animation: pulse-ring 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse-ring {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 6px rgba(212, 168, 67, 0.05), 0 0 60px rgba(212, 168, 67, 0.15), inset 0 0 60px rgba(0, 0, 0, 0.5);
+            }
+
+            50% {
+                box-shadow: 0 0 0 6px rgba(212, 168, 67, 0.12), 0 0 90px rgba(212, 168, 67, 0.28), inset 0 0 60px rgba(0, 0, 0, 0.5);
+            }
+        }
+
+        /* Wheel canvas wrapper */
+        .wheel-wrap {
+            position: relative;
+            width: 380px;
+            height: 380px;
+        }
+
+        canvas#wheel {
+            width: 380px;
+            height: 380px;
+            border-radius: 50%;
+            display: block;
+            filter: drop-shadow(0 0 24px rgba(212, 168, 67, 0.3));
+        }
+
+        /* Pointer / ticker */
+        .pointer {
+            position: absolute;
+            top: -22px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 16px solid transparent;
+            border-right: 16px solid transparent;
+            border-top: 36px solid var(--gold);
+            filter: drop-shadow(0 4px 12px rgba(212, 168, 67, 0.7));
+            z-index: 20;
+            transition: filter 0.1s;
+        }
+
+        .pointer::before {
+            content: '';
+            position: absolute;
+            top: -40px;
+            left: -12px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--gold2);
+            box-shadow: 0 0 14px rgba(245, 208, 112, 0.8);
+        }
+
+        /* Center hub */
+        .hub {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #F5D070, #A0782A);
+            border: 3px solid #0A0A12;
+            box-shadow: 0 0 20px rgba(212, 168, 67, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.3);
+            z-index: 30;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 9px;
+            letter-spacing: 1px;
+            color: #0A0A12;
+            text-align: center;
+            line-height: 1.1;
+        }
+
+        /* Spin button */
+        .spin-btn {
+            margin-top: 32px;
+            position: relative;
+            z-index: 10;
+            background: none;
+            border: none;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .spin-btn-inner {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, #D4A843 0%, #F5D070 45%, #D4A843 100%);
+            color: #0A0A12;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 22px;
+            letter-spacing: 4px;
+            padding: 14px 48px;
+            border-radius: 2px;
+            box-shadow:
+                0 4px 0 #8A6A20,
+                0 8px 30px rgba(212, 168, 67, 0.4);
+            transition: transform 0.1s, box-shadow 0.1s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .spin-btn-inner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 60%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.4s;
+        }
+
+        .spin-btn:hover .spin-btn-inner::before {
+            left: 160%;
+        }
+
+        .spin-btn:active .spin-btn-inner {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #8A6A20, 0 4px 12px rgba(212, 168, 67, 0.3);
+        }
+
+        .spin-btn:disabled .spin-btn-inner {
+            background: linear-gradient(135deg, #555 0%, #777 50%, #555 100%);
+            color: #999;
+            box-shadow: 0 4px 0 #333, 0 8px 16px rgba(0, 0, 0, 0.3);
+            cursor: not-allowed;
+        }
+
+        /* Result overlay */
+        .result-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s;
+            backdrop-filter: blur(4px);
+        }
+
+        .result-overlay.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .result-card {
+            background: var(--dark3);
+            border: 1px solid rgba(212, 168, 67, 0.4);
+            border-radius: 4px;
+            padding: 48px 56px;
+            text-align: center;
+            box-shadow: 0 0 80px rgba(212, 168, 67, 0.2);
+            max-width: 380px;
+            width: 90%;
+            transform: scale(0.85);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .result-overlay.show .result-card {
+            transform: scale(1);
+        }
+
+        .result-emoji {
+            font-size: 52px;
+            margin-bottom: 12px;
+        }
+
+        .result-label {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 13px;
+            letter-spacing: 5px;
+            color: var(--gold);
+            margin-bottom: 8px;
+            opacity: 0.7;
+        }
+
+        .result-prize {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(28px, 6vw, 42px);
+            color: var(--cream);
+            letter-spacing: 2px;
+            text-shadow: 0 0 30px var(--glow);
+            margin-bottom: 24px;
+        }
+
+        .result-close {
+            background: none;
+            border: 1px solid rgba(212, 168, 67, 0.5);
+            color: var(--gold);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 3px;
+            padding: 10px 32px;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .result-close:hover {
+            background: var(--gold);
+            color: #0A0A12;
+        }
+
+        /* Confetti particles */
+        .confetti-piece {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            border-radius: 1px;
+            pointer-events: none;
+            z-index: 200;
+            animation: fall linear forwards;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(-20px) rotate(0deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(110vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* Ticker flash */
+        @keyframes ticker-flash {
+
+            0%,
+            100% {
+                filter: drop-shadow(0 4px 12px rgba(212, 168, 67, 0.7));
+            }
+
+            50% {
+                filter: drop-shadow(0 4px 24px rgba(212, 168, 67, 1));
+            }
+        }
+
+        .tick-flash {
+            animation: ticker-flash 0.06s ease;
+        }
+
+        /* Uses counter */
+        .uses-info {
+            margin-top: 16px;
+            font-size: 13px;
+            color: rgba(242, 234, 216, 0.35);
+            letter-spacing: 2px;
+            z-index: 10;
+            position: relative;
+        }
+
+        .uses-info span {
+            color: var(--gold);
+            opacity: 0.7;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Stars -->
+    <div class="stars" id="stars"></div>
+
+    <!-- Header -->
+    <div class="header">
+        <div class="logo">TOTEM CASINO</div>
+        <div class="title">ŞANS <span>ÇARKI</span></div>
+    </div>
+
+    <!-- Wheel arena -->
+    <div class="arena">
+        <div class="outer-ring"></div>
+        <div class="wheel-wrap" id="wheelWrap">
+            <div class="pointer" id="pointer"></div>
+            <canvas id="wheel" width="760" height="760"></canvas>
+            <div class="hub">TOTEM</div>
+        </div>
+    </div>
+
+    <!-- Spin button -->
+    <button class="spin-btn" id="spinBtn" onclick="spin()">
+        <div class="spin-btn-inner">ÇEVİR</div>
+    </button>
+
+    <div class="uses-info" id="usesInfo">Bugün kalan hakkınız: <span id="usesLeft">1</span></div>
+
+    <!-- Result overlay -->
+    <div class="result-overlay" id="resultOverlay">
+        <div class="result-card">
+            <div class="result-emoji" id="resultEmoji">🎉</div>
+            <div class="result-label">TEBRİKLER! KAZANDINIZ</div>
+            <div class="result-prize" id="resultPrize">100 FS</div>
+            <button class="result-close" onclick="closeResult()">TAMAM</button>
+        </div>
+    </div>
+
+    <script>
+        // ── Wheel data ─────────────────────────────────────────────────────────────
+        const SEGMENTS = [
+            { label: '50 FS', color: '#C0392B', textColor: '#FFE5B4', emoji: '🎰', weight: 20 },
+            { label: '100 TL', color: '#D4A843', textColor: '#0A0A12', emoji: '💰', weight: 15 },
+            { label: '25 FS', color: '#1A2744', textColor: '#D4A843', emoji: '🌟', weight: 25 },
+            { label: 'KAYIP', color: '#1C1C1C', textColor: '#555', emoji: '💀', weight: 18 },
+            { label: '200 TL', color: '#8A2BE2', textColor: '#F5D070', emoji: '💎', weight: 8 },
+            { label: '10 FS', color: '#C0392B', textColor: '#FFE5B4', emoji: '🎲', weight: 22 },
+            { label: '500 TL', color: '#D4A843', textColor: '#0A0A12', emoji: '🏆', weight: 3 },
+            { label: 'TEKRAR', color: '#1A2744', textColor: '#D4A843', emoji: '🔄', weight: 12 },
+            { label: '75 FS', color: '#1B4332', textColor: '#52B788', emoji: '🍀', weight: 10 },
+            { label: 'KAYIP', color: '#1C1C1C', textColor: '#555', emoji: '💀', weight: 18 },
+            { label: '150 TL', color: '#8A2BE2', textColor: '#F5D070', emoji: '👑', weight: 8 },
+            { label: '30 FS', color: '#C0392B', textColor: '#FFE5B4', emoji: '⚡', weight: 20 },
+        ];
+
+        // ── Config ─────────────────────────────────────────────────────────────────
+        const DAILY_USES = 1;   // change to 0 for single-use ever
+        const STORAGE_KEY = 'totem_wheel_state';
+
+        // ── State ──────────────────────────────────────────────────────────────────
+        let currentAngle = 0;
+        let spinning = false;
+        let usesLeft = DAILY_USES;
+
+        // ── Canvas setup ───────────────────────────────────────────────────────────
+        const canvas = document.getElementById('wheel');
+        const ctx = canvas.getContext('2d');
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2;
+        const radius = cx - 8;
+
+        const segAngle = (2 * Math.PI) / SEGMENTS.length;
+
+        // ── Draw wheel ─────────────────────────────────────────────────────────────
+        function drawWheel(angle) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const n = SEGMENTS.length;
+
+            SEGMENTS.forEach((seg, i) => {
+                const start = angle + i * segAngle - Math.PI / 2;
+                const end = start + segAngle;
+                const mid = start + segAngle / 2;
+
+                // Segment fill
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.arc(cx, cy, radius, start, end);
+                ctx.closePath();
+                ctx.fillStyle = seg.color;
+                ctx.fill();
+
+                // Subtle radial highlight
+                const grad = ctx.createRadialGradient(cx, cy, radius * 0.3, cx, cy, radius);
+                grad.addColorStop(0, 'rgba(255,255,255,0.08)');
+                grad.addColorStop(1, 'rgba(0,0,0,0.25)');
+                ctx.fillStyle = grad;
+                ctx.fill();
+
+                // Segment border
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.arc(cx, cy, radius, start, end);
+                ctx.closePath();
+                ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Gold divider line
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.lineTo(cx + radius * Math.cos(start), cy + radius * Math.sin(start));
+                ctx.strokeStyle = 'rgba(212,168,67,0.35)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+
+                // Text
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(mid);
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                const textR = radius * 0.65;
+
+                // Emoji
+                ctx.font = `${radius * 0.075}px serif`;
+                ctx.fillStyle = seg.textColor;
+                ctx.fillText(seg.emoji, textR, -radius * 0.07);
+
+                // Label
+                ctx.font = `700 ${Math.min(radius * 0.072, 26)}px 'Rajdhani', sans-serif`;
+                ctx.fillStyle = seg.textColor;
+                ctx.fillText(seg.label, textR, radius * 0.07);
+
+                ctx.restore();
+            });
+
+            // Outer rim
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+            const rimGrad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            rimGrad.addColorStop(0, '#F5D070');
+            rimGrad.addColorStop(0.5, '#D4A843');
+            rimGrad.addColorStop(1, '#A07830');
+            ctx.strokeStyle = rimGrad;
+            ctx.lineWidth = 10;
+            ctx.stroke();
+
+            // Inner rim shadow
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius - 5, 0, 2 * Math.PI);
+            ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        }
+
+        // ── Weighted random pick ───────────────────────────────────────────────────
+        function pickSegment() {
+            const total = SEGMENTS.reduce((s, seg) => s + seg.weight, 0);
+            let rand = Math.random() * total;
+            for (let i = 0; i < SEGMENTS.length; i++) {
+                rand -= SEGMENTS[i].weight;
+                if (rand < 0) return i;
+            }
+            return SEGMENTS.length - 1;
+        }
+
+        // ── Ticker tick sound simulation (CSS flash) ───────────────────────────────
+        let lastTickSeg = -1;
+        function checkTick(angle) {
+            const normalized = ((angle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+            const seg = Math.floor(((2 * Math.PI - normalized) / (2 * Math.PI)) * SEGMENTS.length) % SEGMENTS.length;
+            if (seg !== lastTickSeg) {
+                lastTickSeg = seg;
+                const p = document.getElementById('pointer');
+                p.classList.remove('tick-flash');
+                void p.offsetWidth;
+                p.classList.add('tick-flash');
+            }
+        }
+
+        // ── Spin logic ─────────────────────────────────────────────────────────────
+        function spin() {
+            if (spinning || usesLeft <= 0) return;
+            spinning = true;
+            document.getElementById('spinBtn').disabled = true;
+
+            const target = pickSegment();
+            const targetMid = target * segAngle + segAngle / 2;
+            // We want pointer (top = -π/2 offset from currentAngle) to land on targetMid
+            const extraSpins = (5 + Math.floor(Math.random() * 4)) * 2 * Math.PI;
+            const finalAngle = currentAngle
+                + extraSpins
+                + (2 * Math.PI - ((currentAngle + targetMid) % (2 * Math.PI)));
+
+            const duration = 4500 + Math.random() * 1500;
+            const start = performance.now();
+            const from = currentAngle;
+
+            function easeOut(t) {
+                return 1 - Math.pow(1 - t, 4);
+            }
+
+            function frame(now) {
+                const elapsed = now - start;
+                const progress = Math.min(elapsed / duration, 1);
+                const eased = easeOut(progress);
+                currentAngle = from + (finalAngle - from) * eased;
+
+                drawWheel(currentAngle);
+                checkTick(currentAngle);
+
+                if (progress < 1) {
+                    requestAnimationFrame(frame);
+                } else {
+                    currentAngle = finalAngle % (2 * Math.PI);
+                    spinning = false;
+                    usesLeft--;
+                    saveState();
+                    updateUsesUI();
+                    setTimeout(() => showResult(SEGMENTS[target]), 400);
+                    if (usesLeft <= 0) {
+                        document.getElementById('spinBtn').disabled = true;
+                    } else {
+                        document.getElementById('spinBtn').disabled = false;
+                    }
+                }
+            }
+
+            requestAnimationFrame(frame);
+        }
+
+        // ── Result overlay ─────────────────────────────────────────────────────────
+        function showResult(seg) {
+            document.getElementById('resultEmoji').textContent = seg.emoji;
+            document.getElementById('resultPrize').textContent = seg.label;
+            document.getElementById('resultOverlay').classList.add('show');
+            if (seg.label !== 'KAYIP') launchConfetti();
+        }
+
+        function closeResult() {
+            document.getElementById('resultOverlay').classList.remove('show');
+        }
+
+        // ── Confetti ───────────────────────────────────────────────────────────────
+        function launchConfetti() {
+            const colors = ['#D4A843', '#F5D070', '#C0392B', '#8A2BE2', '#52B788', '#fff'];
+            for (let i = 0; i < 80; i++) {
+                const el = document.createElement('div');
+                el.className = 'confetti-piece';
+                el.style.cssText = `
+      left: ${Math.random() * 100}vw;
+      top: -10px;
+      background: ${colors[Math.floor(Math.random() * colors.length)]};
+      width: ${4 + Math.random() * 8}px;
+      height: ${4 + Math.random() * 8}px;
+      animation-duration: ${1.5 + Math.random() * 2}s;
+      animation-delay: ${Math.random() * 0.8}s;
+      border-radius: ${Math.random() > 0.5 ? '50%' : '1px'};
+    `;
+                document.body.appendChild(el);
+                el.addEventListener('animationend', () => el.remove());
+            }
+        }
+
+        // ── Persistence (daily reset) ──────────────────────────────────────────────
+        function saveState() {
+            const today = new Date().toDateString();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({ date: today, uses: usesLeft, angle: currentAngle }));
+        }
+
+        function loadState() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return;
+                const s = JSON.parse(raw);
+                if (s.date === new Date().toDateString()) {
+                    usesLeft = s.uses;
+                    currentAngle = s.angle || 0;
+                } else {
+                    usesLeft = DAILY_USES;
+                    currentAngle = 0;
+                }
+            } catch (e) {
+                usesLeft = DAILY_USES;
+                currentAngle = 0;
+            }
+        }
+
+        function updateUsesUI() {
+            document.getElementById('usesLeft').textContent = usesLeft;
+            if (usesLeft <= 0) {
+                document.getElementById('usesInfo').innerHTML = 'Bugünkü hakkınızı kullandınız · <span>Yarın tekrar gelin</span>';
+                document.getElementById('spinBtn').disabled = true;
+            }
+        }
+
+        // ── Stars ──────────────────────────────────────────────────────────────────
+        function createStars() {
+            const container = document.getElementById('stars');
+            for (let i = 0; i < 120; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                const size = 0.5 + Math.random() * 2;
+                star.style.cssText = `
+      width: ${size}px; height: ${size}px;
+      left: ${Math.random() * 100}%;
+      top: ${Math.random() * 100}%;
+      --d: ${2 + Math.random() * 4}s;
+      --delay: ${-Math.random() * 4}s;
+      --min: ${0.05 + Math.random() * 0.1};
+      --max: ${0.3 + Math.random() * 0.5};
+    `;
+                container.appendChild(star);
+            }
+        }
+
+        // ── Init ───────────────────────────────────────────────────────────────────
+        createStars();
+        loadState();
+        updateUsesUI();
+        drawWheel(currentAngle);
+    </script>
+</body>
+
+</html>
